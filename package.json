@@ -1,0 +1,29 @@
+{
+  "name": "@basmanab88-lab/calendar-skills",
+  "version": "1.0.0",
+  "description": "Shared Google Calendar + Hebrew/English time-parsing logic for Basman's apps (T-800, HandyMan, etc.)",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./relative-time": "./src/relative-time.ts",
+    "./ambiguous-time": "./src/ambiguous-time.ts",
+    "./prompt-rules": "./src/prompt-rules.ts"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/basmanab88-lab/calendar-skills.git"
+  },
+  "license": "MIT",
+  "author": "Basman <basman@visitt.io>",
+  "keywords": ["calendar", "time-parsing", "hebrew", "google-calendar"]
+}

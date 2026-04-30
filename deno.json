@@ -1,0 +1,13 @@
+{
+  "name": "@basmanab88-lab/calendar-skills",
+  "version": "1.0.0",
+  "exports": {
+    ".": "./src/index.ts",
+    "./relative-time": "./src/relative-time.ts",
+    "./ambiguous-time": "./src/ambiguous-time.ts",
+    "./prompt-rules": "./src/prompt-rules.ts"
+  },
+  "tasks": {
+    "check": "deno check src/index.ts"
+  }
+}
