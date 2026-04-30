@@ -58,9 +58,19 @@ When you find a calendar/time bug in any of Basman's apps:
 
 1. **Do not fix it in the app's repo.** Find the relevant function here.
 2. Edit the code in this repo.
-3. Bump the version: `npm version patch`.
+3. Bump the version: `npm version patch` (or run `git tag vX.Y.Z` manually).
 4. `git push && git push --tags`.
-5. Each consuming app picks up the new version via Dependabot (auto-PR within ~24h) or manual update.
+5. Create a GitHub release for the new tag (`gh release create vX.Y.Z`).
+6. **The `notify-consumers` workflow auto-opens a PR in T-800 (and any other registered consumer) bumping the version pin.** Merge the PR to deploy.
+
+## Auto-propagation setup (one-time)
+
+For the auto-PR workflow to work, this repo needs a secret named `CONSUMER_PAT`:
+
+- A GitHub Personal Access Token (PAT) with `repo` scope on each consumer repo (T-800, HandyMan, etc.)
+- Stored as a secret: `gh secret set CONSUMER_PAT --body "$YOUR_PAT" --repo basmanab88-lab/calendar-skills`
+
+To register a new consumer app, edit `.github/workflows/notify-consumers.yml` and add another job mirroring `bump-t-800`.
 
 ## License
 

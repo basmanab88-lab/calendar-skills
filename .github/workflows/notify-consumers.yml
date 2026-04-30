@@ -1,0 +1,66 @@
+name: Notify consumers on release
+
+# When a new version of calendar-skills is released, automatically open
+# a PR in each consuming app (T-800, etc.) bumping the version pin.
+#
+# Requires repo secret CONSUMER_PAT — a GitHub Personal Access Token
+# with `repo` scope on basmanab88-lab/t-800 (and any other consumer).
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to bump consumers to (e.g. v1.0.1)'
+        required: true
+
+jobs:
+  bump-t-800:
+    name: Bump calendar-skills version in T-800
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout T-800
+        uses: actions/checkout@v4
+        with:
+          repository: basmanab88-lab/t-800
+          token: ${{ secrets.CONSUMER_PAT }}
+          path: t-800
+
+      - name: Bump calendar-skills version in import URLs
+        working-directory: t-800
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.tag }}"
+          # Replace any pinned calendar-skills version in TS files
+          find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.mjs" \) \
+            -not -path "./node_modules/*" \
+            -exec sed -i "s|calendar-skills/v[0-9][0-9.]*|calendar-skills/${NEW_VERSION}|g" {} +
+          git diff --stat
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          path: t-800
+          token: ${{ secrets.CONSUMER_PAT }}
+          commit-message: "chore: bump calendar-skills to ${{ steps.version.outputs.tag }}"
+          branch: "chore/calendar-skills-${{ steps.version.outputs.tag }}"
+          delete-branch: true
+          title: "chore: bump calendar-skills to ${{ steps.version.outputs.tag }}"
+          body: |
+            Auto-generated PR triggered by a new release of [calendar-skills](https://github.com/basmanab88-lab/calendar-skills/releases/tag/${{ steps.version.outputs.tag }}).
+
+            Bumps the version pin in all TypeScript imports.
+
+            Merge to deploy the calendar/time logic update.
+          labels: |
+            calendar-skills
+            auto-bump
