@@ -16,9 +16,9 @@ const HEBREW_NUMS: Record<string, number> = {
  * Use this to bypass AM/PM ambiguity guards.
  */
 export function isRelativeTime(text: string): boolean {
-  if (/(?:עוד|בעוד|תוך)\s+(?:[^\s]+\s+)?(?:דקות|דקה|שעות|שעה|שניות|שניה|חצי|רבע)/i.test(text)) return true
+  if (/(?:עוד|בעוד|תוך)\s+(?:[^\s]+\s+)?(?:דקות|דקה|שעות|שעה|שניות|שניה|חצי|רבע|ימים|יום|יומיים|שבועות|שבוע|שבועיים)/i.test(text)) return true
   if (/מעכשיו|מעכשו/.test(text)) return true
-  if (/\bin\s+(?:a\s+|an\s+|\d+\s*)(?:minutes?|mins?|hours?|hrs?|seconds?|secs?)\b/i.test(text)) return true
+  if (/\bin\s+(?:a\s+|an\s+|\d+\s*)(?:minutes?|mins?|hours?|hrs?|seconds?|secs?|days?|weeks?)\b/i.test(text)) return true
   if (/\bfrom\s+now\b/i.test(text)) return true
   if (/\bhalf\s+an?\s+hour\b/i.test(text)) return true
   if (/\bquarter\s+(?:of\s+)?an?\s+hour\b/i.test(text)) return true
@@ -83,6 +83,42 @@ export function resolveRelativeTime(
   }
   if (/\bhalf\s+an?\s+hour\b/i.test(text)) { totalMinutes += 30; matched = true }
   if (/\bquarter\s+(?:of\s+)?an?\s+hour\b/i.test(text)) { totalMinutes += 15; matched = true }
+
+  // ── Days & weeks (NEW in v1.0.1) ──────────────────────────────
+  // Hebrew days: עוד/בעוד [N] ימים / יום
+  const heDay = text.match(/(?:עוד|בעוד|תוך)\s+(?:(\d+)|([֐-׿]+))\s+(?:ימים)/)
+  if (heDay) {
+    const num = heDay[1] ? parseInt(heDay[1]) : (HEBREW_NUMS[heDay[2]] ?? 0)
+    if (num) { totalMinutes += num * 24 * 60; matched = true }
+  }
+  // יומיים = 2 days
+  if (/(?:עוד|בעוד|תוך)\s+יומיים/.test(text)) { totalMinutes += 2 * 24 * 60; matched = true }
+  // עוד יום (no number) = 1 day
+  if (!matched && /(?:עוד|בעוד|תוך)\s+יום(?!\s*\d|יים)/.test(text)) { totalMinutes += 24 * 60; matched = true }
+
+  // Hebrew weeks: עוד/בעוד [N] שבועות / שבוע
+  const heWeek = text.match(/(?:עוד|בעוד|תוך)\s+(?:(\d+)|([֐-׿]+))\s+(?:שבועות)/)
+  if (heWeek) {
+    const num = heWeek[1] ? parseInt(heWeek[1]) : (HEBREW_NUMS[heWeek[2]] ?? 0)
+    if (num) { totalMinutes += num * 7 * 24 * 60; matched = true }
+  }
+  // שבועיים = 2 weeks
+  if (/(?:עוד|בעוד|תוך)\s+שבועיים/.test(text)) { totalMinutes += 2 * 7 * 24 * 60; matched = true }
+  // עוד שבוע (no number) = 1 week
+  if (!matched && /(?:עוד|בעוד|תוך)\s+שבוע(?!\s*\d|יים|ות)/.test(text)) { totalMinutes += 7 * 24 * 60; matched = true }
+
+  // English days
+  const enDay = text.match(/\bin\s+(\d+|a|an)\s*(?:days?)\b/i)
+  if (enDay) {
+    const num = /^an?$/i.test(enDay[1]) ? 1 : parseInt(enDay[1])
+    totalMinutes += num * 24 * 60; matched = true
+  }
+  // English weeks
+  const enWeek = text.match(/\bin\s+(\d+|a|an)\s*(?:weeks?)\b/i)
+  if (enWeek) {
+    const num = /^an?$/i.test(enWeek[1]) ? 1 : parseInt(enWeek[1])
+    totalMinutes += num * 7 * 24 * 60; matched = true
+  }
 
   if (!matched || totalMinutes <= 0) return null
 

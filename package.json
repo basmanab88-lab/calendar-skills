@@ -1,6 +1,6 @@
 {
   "name": "@basmanab88-lab/calendar-skills",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shared Google Calendar + Hebrew/English time-parsing logic for Basman's apps (T-800, HandyMan, etc.)",
   "type": "module",
   "main": "./src/index.ts",
